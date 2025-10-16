@@ -1,30 +1,42 @@
-import React, { useState } from "react";
-import { Card, CardHeader, CardContent, CardTitle } from './ui/card'
+import React, { useEffect, useState } from "react";
+import { Card, CardHeader, CardContent, CardTitle } from "./ui/card";
 import { Input } from "./ui/input";
 import { Button } from "./ui/button";
 import { Checkbox } from "./ui/checkbox";
 import DeleteButton from "./ui/deleteButton";
 
+interface Todo {
+  id: number;
+  text: string;
+  done: boolean;
+}
+
 export default function TodoBox() {
-  const [tasks, setTasks] = useState<{ text: string; done: boolean }[]>([]);
+  const [tasks, setTasks] = useState<Todo[]>([]);
   const [newTask, setNewTask] = useState("");
 
-  const addTask = () => {
+  // ✅ load from DB on mount
+  useEffect(() => {
+    window.api.getTodos().then(setTasks);
+  }, []);
+
+  const addTask = async () => {
     if (!newTask.trim()) return;
-    setTasks([...tasks, { text: newTask.trim(), done: false }]);
+    await window.api.addTodo(newTask.trim());
+    setTasks(await window.api.getTodos());
     setNewTask("");
   };
 
-  const toggleTask = (index: number) => {
-    setTasks(
-      tasks.map((task, i) =>
-        i === index ? { ...task, done: !task.done } : task
-      )
-    );
+  const toggleTask = async (index: number) => {
+    const task = tasks[index];
+    await window.api.toggleTodo(task.id, !task.done);
+    setTasks(await window.api.getTodos());
   };
 
-  const deleteTask = (index: number) => {
-    setTasks(tasks.filter((_, i) => i !== index));
+  const deleteTask = async (index: number) => {
+    const task = tasks[index];
+    await window.api.deleteTodo(task.id);
+    setTasks(await window.api.getTodos());
   };
 
   return (
@@ -49,11 +61,11 @@ export default function TodoBox() {
         <div className="space-y-2">
           {tasks.map((task, index) => (
             <div
-              key={index}
+              key={task.id}
               className="flex items-center justify-between bg-muted rounded-lg px-3 py-2"
             >
               <div className="flex items-center gap-2">
-                <Checkbox
+              <Checkbox
                   checked={task.done}
                   onCheckedChange={() => toggleTask(index)}
                 />
@@ -65,7 +77,7 @@ export default function TodoBox() {
                   {task.text}
                 </span>
               </div>
-              <DeleteButton onClick={() => deleteTask(index)}/>
+              <DeleteButton onClick={() => deleteTask(index)} />
             </div>
           ))}
 
