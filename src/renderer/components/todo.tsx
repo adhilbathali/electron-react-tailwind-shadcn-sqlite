@@ -62,11 +62,12 @@ export default function TodoBox() {
           {tasks.map((task, index) => (
             <div
               key={task.id}
-              className="flex items-center justify-between bg-muted rounded-lg px-3 py-2"
+              className="flex items-center justify-between bg-[#f0f0f0] rounded-lg px-3 py-2"
             >
               <div className="flex items-center gap-2">
               <Checkbox
                   checked={task.done}
+                  className="bg-white border-gray-400"
                   onCheckedChange={() => toggleTask(index)}
                 />
                 <span
